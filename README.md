@@ -1,0 +1,1 @@
+# Battery QI FastAPI Project
