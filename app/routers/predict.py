@@ -1,20 +1,12 @@
-from fastapi import APIRouter, HTTPException
-from app.services.inference import run_inference
+from fastapi import APIRouter, UploadFile, File
+from ai.dataloaders.utils import load_image  # 이미지 변환 유틸리티
+from app.services.inference import predict_images
 
 router = APIRouter()
 
-@router.get("/predict/{battery_id}")
-async def predict_battery_qi(battery_id: str):
-    """
-    📌 배터리 셀 ID를 입력받아 AI 추론을 수행하는 API
-    - `battery_id`: 검사할 배터리 셀 ID
-    - AI 추론 결과를 JSON 형태로 반환
-    """
-    # ✅ AI 추론 실행
-    result = run_inference(battery_id)
-
-    # ✅ 에러 발생 시 예외 처리
-    if "error" in result:
-        raise HTTPException(status_code=400, detail=result["error"])
-
-    return result  # JSON 응답
+@router.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    """이미지를 받아서 AI 모델 추론을 수행하는 FastAPI 엔드포인트"""
+    image = load_image(await file.read())  # ✅ 이미지 변환
+    preds = predict_images([image])  # ✅ AI 추론 수행
+    return {"prediction": preds[0].tolist()}
