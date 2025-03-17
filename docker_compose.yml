@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  fastapi:
+    container_name: fastapi-container
+    restart: always
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/app  # FastAPI 코드 연결
+      - ./data/folder_A:/data/folder_A  # 폴더 A (아두이노가 전송한 이미지 저장)
+      - ./data/folder_B:/data/folder_B  # 폴더 B (실제 AI 모델이 사용할 이미지)
+      - ./data/folder_C:/data/folder_C  # 폴더 C (검사 완료된 데이터 저장)
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+      - FOLDER_A_PATH=/data/folder_A
+      - FOLDER_B_PATH=/data/folder_B
+      - FOLDER_C_PATH=/data/folder_C
+    depends_on:
+      - db  # MySQL DB 실행 후 FastAPI 시작
+
+  db:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
+  folder_A:  # 폴더 A를 위한 도커 볼륨
+  folder_B:  # 폴더 B를 위한 도커 볼륨
+  folder_C:  # 폴더 C를 위한 도커 볼륨
